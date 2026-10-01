@@ -81,8 +81,8 @@ function calculate(operation, left, right) {
   }
 
   if (normalizedOperation === 'squareRoot') {
-    if (right !== undefined) {
-      throw new Error('Square root accepts exactly one operand.');
+    if (left === undefined || right !== undefined) {
+      throw new Error('Square root requires exactly one operand.');
     }
 
     return squareRoot(left);

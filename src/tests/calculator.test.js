@@ -96,6 +96,7 @@ test('calculate rejects unsupported operations', () => {
 
 test('calculate validates unary and binary operand counts', () => {
   assert.throws(() => calculate('square root', 16, 2), /exactly one operand/);
+  assert.throws(() => calculate('square root'), /exactly one operand/);
   assert.throws(() => calculate('addition', 2), /requires two operands/);
 });
 
