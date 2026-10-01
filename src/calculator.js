@@ -88,7 +88,7 @@ function calculate(operation, left, right) {
     return squareRoot(left);
   }
 
-  if (right === undefined) {
+  if (left === undefined || right === undefined) {
     throw new Error(`${normalizedOperation} requires two operands.`);
   }
 

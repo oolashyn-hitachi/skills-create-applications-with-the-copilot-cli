@@ -98,6 +98,7 @@ test('calculate validates unary and binary operand counts', () => {
   assert.throws(() => calculate('square root', 16, 2), /exactly one operand/);
   assert.throws(() => calculate('square root'), /exactly one operand/);
   assert.throws(() => calculate('addition', 2), /requires two operands/);
+  assert.throws(() => calculate('addition', undefined, 2), /requires two operands/);
 });
 
 test('CLI prints results for the examples in the exercise', () => {
