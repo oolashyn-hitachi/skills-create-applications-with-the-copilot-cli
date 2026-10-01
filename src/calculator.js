@@ -71,7 +71,10 @@ function squareRoot(number) {
 }
 
 function calculate(operation, left, right) {
-  const normalizedOperation = operations[operation.toLowerCase()];
+  const operationKey = operation.toLowerCase();
+  const normalizedOperation = Object.hasOwn(operations, operationKey)
+    ? operations[operationKey]
+    : undefined;
 
   if (!normalizedOperation) {
     throw new Error(`Unsupported operation: ${operation}`);

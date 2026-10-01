@@ -86,7 +86,12 @@ test('calculate accepts operation names and symbols', () => {
 });
 
 test('calculate rejects unsupported operations', () => {
-  assert.throws(() => calculate('unknown', 7, 2), /Unsupported operation/);
+  for (const operation of ['unknown', 'constructor', 'toString', '__proto__']) {
+    assert.throws(
+      () => calculate(operation, 7, 2),
+      new RegExp(`Unsupported operation: ${operation}`),
+    );
+  }
 });
 
 test('calculate validates unary and binary operand counts', () => {
