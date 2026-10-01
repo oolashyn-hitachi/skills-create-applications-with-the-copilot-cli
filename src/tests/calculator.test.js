@@ -8,6 +8,9 @@ const {
   subtraction,
   multiplication,
   division,
+  modulo,
+  power,
+  squareRoot,
   calculate,
 } = require('../calculator');
 
@@ -40,15 +43,55 @@ test('division rejects a zero divisor', () => {
   });
 });
 
+test('modulo returns the remainder after division', () => {
+  assert.equal(modulo(5, 2), 1);
+  assert.equal(modulo(10, 5), 0);
+  assert.equal(modulo(-5, 2), -1);
+});
+
+test('modulo rejects a zero divisor', () => {
+  assert.throws(() => modulo(5, 0), {
+    name: 'RangeError',
+    message: 'Cannot calculate modulo with a zero divisor.',
+  });
+});
+
+test('power raises a base to its exponent', () => {
+  assert.equal(power(2, 3), 8);
+  assert.equal(power(5, 0), 1);
+  assert.equal(power(2, -1), 0.5);
+});
+
+test('square root returns the square root of a non-negative number', () => {
+  assert.equal(squareRoot(16), 4);
+  assert.equal(squareRoot(0), 0);
+  assert.equal(squareRoot(2), Math.sqrt(2));
+});
+
+test('square root rejects negative numbers', () => {
+  assert.throws(() => squareRoot(-1), {
+    name: 'RangeError',
+    message: 'Cannot calculate the square root of a negative number.',
+  });
+});
+
 test('calculate accepts operation names and symbols', () => {
   assert.equal(calculate('addition', 2, 3), 5);
   assert.equal(calculate('-', 10, 4), 6);
   assert.equal(calculate('multiply', 45, 2), 90);
   assert.equal(calculate('/', 20, 5), 4);
+  assert.equal(calculate('modulo', 5, 2), 1);
+  assert.equal(calculate('^', 2, 3), 8);
+  assert.equal(calculate('square root', 16), 4);
 });
 
 test('calculate rejects unsupported operations', () => {
-  assert.throws(() => calculate('modulo', 7, 2), /Unsupported operation/);
+  assert.throws(() => calculate('unknown', 7, 2), /Unsupported operation/);
+});
+
+test('calculate validates unary and binary operand counts', () => {
+  assert.throws(() => calculate('square root', 16, 2), /exactly one operand/);
+  assert.throws(() => calculate('addition', 2), /requires two operands/);
 });
 
 test('CLI prints results for the examples in the exercise', () => {
@@ -87,4 +130,39 @@ test('CLI reports invalid operands and division by zero', () => {
   );
   assert.equal(divisionByZero.status, 1);
   assert.match(divisionByZero.stderr, /Cannot divide by zero/);
+});
+
+test('CLI runs modulo, power, and square root operations', () => {
+  const examples = [
+    [['modulo', '5', '2'], '1'],
+    [['power', '2', '3'], '8'],
+    [['square-root', '16'], '4'],
+  ];
+
+  for (const [args, expected] of examples) {
+    const result = spawnSync(process.execPath, [calculatorPath, ...args], {
+      encoding: 'utf8',
+    });
+
+    assert.equal(result.status, 0, result.stderr);
+    assert.equal(result.stdout.trim(), expected);
+  }
+});
+
+test('CLI reports negative square root and zero modulo divisor errors', () => {
+  const negativeSquareRoot = spawnSync(
+    process.execPath,
+    [calculatorPath, 'sqrt', '-1'],
+    { encoding: 'utf8' },
+  );
+  assert.equal(negativeSquareRoot.status, 1);
+  assert.match(negativeSquareRoot.stderr, /square root of a negative number/);
+
+  const moduloByZero = spawnSync(
+    process.execPath,
+    [calculatorPath, '%', '5', '0'],
+    { encoding: 'utf8' },
+  );
+  assert.equal(moduloByZero.status, 1);
+  assert.match(moduloByZero.stderr, /modulo with a zero divisor/);
 });
