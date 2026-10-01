@@ -1,0 +1,90 @@
+const assert = require('node:assert/strict');
+const { spawnSync } = require('node:child_process');
+const path = require('node:path');
+const test = require('node:test');
+
+const {
+  addition,
+  subtraction,
+  multiplication,
+  division,
+  calculate,
+} = require('../calculator');
+
+const calculatorPath = path.join(__dirname, '..', 'calculator.js');
+
+test('addition adds two numbers', () => {
+  assert.equal(addition(2, 3), 5);
+  assert.equal(addition(-2, 3), 1);
+});
+
+test('subtraction subtracts the second number from the first', () => {
+  assert.equal(subtraction(10, 4), 6);
+  assert.equal(subtraction(4, 10), -6);
+});
+
+test('multiplication multiplies two numbers', () => {
+  assert.equal(multiplication(45, 2), 90);
+  assert.equal(multiplication(-3, 2), -6);
+});
+
+test('division divides the first number by the second', () => {
+  assert.equal(division(20, 5), 4);
+  assert.equal(division(7, 2), 3.5);
+});
+
+test('division rejects a zero divisor', () => {
+  assert.throws(() => division(1, 0), {
+    name: 'RangeError',
+    message: 'Cannot divide by zero.',
+  });
+});
+
+test('calculate accepts operation names and symbols', () => {
+  assert.equal(calculate('addition', 2, 3), 5);
+  assert.equal(calculate('-', 10, 4), 6);
+  assert.equal(calculate('multiply', 45, 2), 90);
+  assert.equal(calculate('/', 20, 5), 4);
+});
+
+test('calculate rejects unsupported operations', () => {
+  assert.throws(() => calculate('modulo', 7, 2), /Unsupported operation/);
+});
+
+test('CLI prints results for the examples in the exercise', () => {
+  const examples = [
+    ['+', '2', '3', '5'],
+    ['-', '10', '4', '6'],
+    ['*', '45', '2', '90'],
+    ['/', '20', '5', '4'],
+  ];
+
+  for (const [operation, left, right, expected] of examples) {
+    const result = spawnSync(
+      process.execPath,
+      [calculatorPath, operation, left, right],
+      { encoding: 'utf8' },
+    );
+
+    assert.equal(result.status, 0, result.stderr);
+    assert.equal(result.stdout.trim(), expected);
+  }
+});
+
+test('CLI reports invalid operands and division by zero', () => {
+  const invalidOperand = spawnSync(
+    process.execPath,
+    [calculatorPath, '+', 'not-a-number', '2'],
+    { encoding: 'utf8' },
+  );
+  assert.equal(invalidOperand.status, 1);
+  assert.match(invalidOperand.stderr, /Operand 1 must be a finite number/);
+
+  const divisionByZero = spawnSync(
+    process.execPath,
+    [calculatorPath, '/', '20', '0'],
+    { encoding: 'utf8' },
+  );
+  assert.equal(divisionByZero.status, 1);
+  assert.match(divisionByZero.stderr, /Cannot divide by zero/);
+});
